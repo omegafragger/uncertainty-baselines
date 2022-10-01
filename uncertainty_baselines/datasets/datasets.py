@@ -51,9 +51,9 @@ from uncertainty_baselines.datasets.places import Places365Dataset
 from uncertainty_baselines.datasets.random import RandomGaussianImageDataset
 from uncertainty_baselines.datasets.random import RandomRademacherImageDataset
 from uncertainty_baselines.datasets.svhn import SvhnDataset
-from uncertainty_baselines.datasets.toxic_comments import CivilCommentsDataset
-from uncertainty_baselines.datasets.toxic_comments import CivilCommentsIdentitiesDataset
-from uncertainty_baselines.datasets.toxic_comments import WikipediaToxicityDataset
+# from uncertainty_baselines.datasets.toxic_comments import CivilCommentsDataset
+# from uncertainty_baselines.datasets.toxic_comments import CivilCommentsIdentitiesDataset
+# from uncertainty_baselines.datasets.toxic_comments import WikipediaToxicityDataset
 # pylint: enable=g-bad-import-order
 
 try:
@@ -90,8 +90,8 @@ DATASETS = {
     'cifar10_corrupted': Cifar10CorruptedDataset,
     'cifar100_corrupted': Cifar100CorruptedDataset,
     'cityscapes': CityscapesDataset,
-    'civil_comments': CivilCommentsDataset,
-    'civil_comments_identities': CivilCommentsIdentitiesDataset,
+    # 'civil_comments': CivilCommentsDataset,
+    # 'civil_comments_identities': CivilCommentsIdentitiesDataset,
     'clinic_intent': ClincIntentDetectionDataset,
     'criteo': CriteoDataset,
     'ub_diabetic_retinopathy_detection': UBDiabeticRetinopathyDetectionDataset,
@@ -124,7 +124,7 @@ DATASETS = {
     'glue/rte': GlueDatasets['glue/rte'],
     'glue/wnli': GlueDatasets['glue/wnli'],
     'glue/stsb': GlueDatasets['glue/stsb'],
-    'wikipedia_toxicity': WikipediaToxicityDataset,
+    # 'wikipedia_toxicity': WikipediaToxicityDataset,
     'genomics_ood': GenomicsOodDataset,
 }
 

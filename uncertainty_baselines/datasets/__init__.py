@@ -20,7 +20,7 @@ from absl import logging
 # pylint: disable=g-bad-import-order
 from uncertainty_baselines.datasets import inception_preprocessing
 from uncertainty_baselines.datasets import resnet_preprocessing
-from uncertainty_baselines.datasets import tfds
+# from uncertainty_baselines.datasets import tfds
 from uncertainty_baselines.datasets.aptos import APTOSDataset
 from uncertainty_baselines.datasets.base import BaseDataset
 from uncertainty_baselines.datasets.base import make_ood_dataset
@@ -62,9 +62,9 @@ from uncertainty_baselines.datasets.random import RandomGaussianImageDataset
 from uncertainty_baselines.datasets.random import RandomRademacherImageDataset
 from uncertainty_baselines.datasets.svhn import SvhnDataset
 from uncertainty_baselines.datasets.test_utils import DatasetTest
-from uncertainty_baselines.datasets.toxic_comments import CivilCommentsDataset
-from uncertainty_baselines.datasets.toxic_comments import CivilCommentsIdentitiesDataset
-from uncertainty_baselines.datasets.toxic_comments import WikipediaToxicityDataset
+# from uncertainty_baselines.datasets.toxic_comments import CivilCommentsDataset
+# from uncertainty_baselines.datasets.toxic_comments import CivilCommentsIdentitiesDataset
+# from uncertainty_baselines.datasets.toxic_comments import WikipediaToxicityDataset
 # pylint: enable=g-bad-import-order
 
 try:
