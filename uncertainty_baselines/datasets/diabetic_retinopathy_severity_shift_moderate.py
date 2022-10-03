@@ -73,7 +73,7 @@ class DiabeticRetinopathySeverityShiftModerateDataset(base.BaseDataset):
                shuffle_buffer_size: Optional[int] = None,
                num_parallel_parser_calls: int = 64,
                data_dir: Optional[str] = None,
-               download_data: bool = False,
+               download_data: bool = True,
                is_training: Optional[bool] = None,
                drop_remainder: bool = True,
                cache: bool = False):

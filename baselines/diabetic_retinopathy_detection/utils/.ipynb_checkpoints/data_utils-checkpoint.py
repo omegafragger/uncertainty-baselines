@@ -52,7 +52,7 @@ def load_kaggle_severity_shift_dataset(train_batch_size,
     Dict of datasets, Dict of number of steps per dataset.
   """
   assert flags.use_validation
-  eyepacs_data_dir = flags.eyepacs_data_dir
+  data_dir = flags.data_dir
   load_train_split = flags.load_train_split
 
   # Using the decision threshold between severity levels 0 and 1, we define
@@ -112,7 +112,7 @@ def load_kaggle_severity_shift_dataset(train_batch_size,
     dataset_builder = ub.datasets.get(
         dataset_name,
         split=split,
-        data_dir=eyepacs_data_dir,
+        data_dir=data_dir,
         cache=(flags.cache_eval_datasets and split != 'train'),
         drop_remainder=not load_for_eval,
         builder_config=f'{dataset_name}/{flags.preproc_builder_config}')
@@ -146,8 +146,7 @@ def load_kaggle_aptos_country_shift_dataset(train_batch_size,
   Returns:
     Dict of datasets, Dict of number of steps per dataset.
   """
-  eyepacs_data_dir = flags.eyepacs_data_dir
-  aptos_data_dir = flags.aptos_data_dir
+  data_dir = flags.data_dir
   load_train_split = flags.load_train_split
 
   # * Load Steps Per Epoch for Each Dataset *
@@ -179,7 +178,7 @@ def load_kaggle_aptos_country_shift_dataset(train_batch_size,
   dataset_validation_builder = ub.datasets.get(
       dr_dataset_name,
       split='validation',
-      data_dir=eyepacs_data_dir,
+      data_dir=data_dir,
       is_training=not flags.use_validation,
       decision_threshold=flags.dr_decision_threshold,
       cache=flags.cache_eval_datasets,
@@ -198,7 +197,7 @@ def load_kaggle_aptos_country_shift_dataset(train_batch_size,
     aptos_validation_builder = ub.datasets.get(
         'aptos',
         split='validation',
-        data_dir=aptos_data_dir,
+        data_dir=data_dir,
         decision_threshold=flags.dr_decision_threshold,
         cache=flags.cache_eval_datasets,
         drop_remainder=not load_for_eval,
@@ -220,7 +219,7 @@ def load_kaggle_aptos_country_shift_dataset(train_batch_size,
     dataset_train_builder = ub.datasets.get(
         dr_dataset_name,
         split='train',
-        data_dir=eyepacs_data_dir,
+        data_dir=data_dir,
         decision_threshold=flags.dr_decision_threshold,
         builder_config=f'{dr_dataset_name}/{flags.preproc_builder_config}')
     dataset_train = dataset_train_builder.load(batch_size=train_batch_size)
@@ -244,7 +243,7 @@ def load_kaggle_aptos_country_shift_dataset(train_batch_size,
     dataset_test_builder = ub.datasets.get(
         dr_dataset_name,
         split='test',
-        data_dir=eyepacs_data_dir,
+        data_dir=data_dir,
         decision_threshold=flags.dr_decision_threshold,
         cache=flags.cache_eval_datasets,
         drop_remainder=not load_for_eval,
@@ -259,7 +258,7 @@ def load_kaggle_aptos_country_shift_dataset(train_batch_size,
     aptos_test_builder = ub.datasets.get(
         'aptos',
         split='test',
-        data_dir=aptos_data_dir,
+        data_dir=data_dir,
         decision_threshold=flags.dr_decision_threshold,
         cache=flags.cache_eval_datasets,
         drop_remainder=not load_for_eval,
