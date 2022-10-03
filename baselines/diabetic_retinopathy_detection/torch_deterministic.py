@@ -4,6 +4,7 @@ import os
 import pathlib
 import pprint
 import time
+import numpy as np
 
 from absl import app
 from absl import flags
@@ -22,11 +23,15 @@ from tensorboard.plugins.hparams import api as hp
 # Other utilities
 from torch_deterministic_args import training_args
 
+# Models
+from uncertainty_baselines.models.torch_models.resnet import resnet50
+from uncertainty_baselines.models.torch_models.vgg import vgg16
+
 DEFAULT_NUM_EPOCHS = 90
 
 MODEL_DICT = {
-    'resnet50': ub.models.torch_models.resnet.resnet50,
-    'vgg16': ub.models.torch_models.vgg.vgg16
+    'resnet50': resnet50,
+    'vgg16': vgg16
 }
 
 
@@ -36,6 +41,8 @@ def main():
 
     # Output directory
     output_dir = os.path.join(train_args.output_dir, f'seed_{train_args.seed}')
+    train_args.eyepacs_data_dir = os.path.join(train_args.data_dir, 'eyepacs')
+    train_args.aptos_data_dir = os.path.join(train_args.data_dir, 'aptos')
     tf.io.gfile.makedirs(output_dir)
     logging.info('Saving checkpoints at %s', output_dir)
 
@@ -77,6 +84,7 @@ def main():
 
 
     # Load in datasets.
+    per_core_batch_size = train_args.per_core_batch_size
     datasets, steps = utils.load_dataset(
         train_batch_size=per_core_batch_size,
         eval_batch_size=per_core_batch_size,
@@ -346,12 +354,12 @@ def main():
     logging.info('Saved last checkpoint to %s', final_checkpoint_path)
 
     with summary_writer.as_default():
-    hp.hparams({
-        'base_learning_rate': train_args.base_learning_rate,
-        'one_minus_momentum': train_args.one_minus_momentum,
-        'l2': train_args.l2,
-        'lr_warmup_epochs': train_args.lr_warmup_epochs
-    })
+        hp.hparams({
+            'base_learning_rate': train_args.base_learning_rate,
+            'one_minus_momentum': train_args.one_minus_momentum,
+            'l2': train_args.l2,
+            'lr_warmup_epochs': train_args.lr_warmup_epochs
+        })
 
 
 

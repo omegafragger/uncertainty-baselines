@@ -40,7 +40,7 @@ def training_args():
     class_reweight_mode = None
     l2 = 0.00010674
     train_epochs = DEFAULT_NUM_EPOCHS
-    per_core_batch_size = 32
+    per_core_batch_size = 1
     checkpoint_interval = 25
     num_bins = 15
     
