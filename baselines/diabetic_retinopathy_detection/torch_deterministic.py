@@ -48,6 +48,10 @@ def main():
     tf.io.gfile.makedirs(output_dir)
     logging.info('Saving checkpoints at %s', output_dir)
 
+    # Prevent tensorflow from swallowing up GPU memory
+    gpu_devices = tf.config.experimental.list_physical_devices('GPU')
+    tf.config.experimental.set_memory_growth(gpu_devices[0], True)
+
     # Set seeds
     tf.random.set_seed(train_args.seed)
     np.random.seed(train_args.seed)
@@ -79,17 +83,13 @@ def main():
     else:
         class_weights = None
 
-
-    strategy = utils.init_distribution_strategy(force_use_cpu=True, use_gpu=False, tpu_name=None)
-
-
     # Load in datasets.
     per_core_batch_size = train_args.per_core_batch_size
     datasets, steps = utils.load_dataset(
         train_batch_size=per_core_batch_size,
         eval_batch_size=per_core_batch_size,
         flags=train_args,
-        strategy=strategy)
+        strategy=None)
     available_splits = list(datasets.keys())
     test_splits = [split for split in available_splits if 'test' in split]
     eval_splits = [
