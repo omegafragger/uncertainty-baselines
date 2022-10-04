@@ -48,7 +48,6 @@ def training_args():
     num_cores = 1
     
     model = "resnet50"
-    sn_coeff = 3.0
 
     parser = argparse.ArgumentParser(
         description="Args for training parameters", formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -108,16 +107,5 @@ def training_args():
 
 
     parser.add_argument("--model", type=str, default=model, dest="model", help="Model to train")
-    parser.add_argument(
-        "-sn", action="store_true", dest="sn", help="whether to use spectral normalisation during training",
-    )
-    parser.set_defaults(sn=False)
-    parser.add_argument(
-        "--coeff", type=float, default=sn_coeff, dest="coeff", help="Coeff parameter for spectral normalisation",
-    )
-    parser.add_argument(
-        "-mod", action="store_true", dest="mod", help="whether to use architectural modifications during training",
-    )
-    parser.set_defaults(mod=False)
 
     return parser

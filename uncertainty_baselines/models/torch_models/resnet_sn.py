@@ -7,6 +7,10 @@ from torch import Tensor
 from torch.hub import load_state_dict_from_url
 
 
+from uncertainty_baselines.models.torch_models.spectral_normalization.spectral_norm_conv_inplace import spectral_norm_conv
+from uncertainty_baselines.models.torch_models.spectral_normalization.spectral_norm_fc import spectral_norm_fc
+
+
 __all__ = [
     "ResNet",
     "resnet18",
@@ -34,6 +38,41 @@ model_urls = {
 }
 
 
+def wrapped_conv3x3(inp_size: int, in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1, coeff: float = 3.0, n_power_iterations: int = 1):
+    """3x3 convolution with padding"""
+    conv = nn.Conv2d(
+        in_planes,
+        out_planes,
+        kernel_size=3,
+        stride=stride,
+        padding=dilation,
+        groups=groups,
+        bias=False,
+        dilation=dilation,
+    )
+
+    shapes = (in_planes, inp_size, inp_size)
+    wrapped_conv = spectral_norm_conv(conv, coeff, shapes, n_power_iterations)
+
+    return wrapped_conv
+
+
+def wrapped_conv1x1(in_planes: int, out_planes: int, stride: int = 1, coeff: float = 3.0, n_power_iterations: int = 1):
+    """1x1 convolution"""
+    conv = nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+    wrapped_conv = spectral_norm_fc(conv, coeff, n_power_iterations)
+
+    return wrapped_conv
+
+
+def wrapped_conv(inp_size, in_planes, out_planes, kernel, stride, padding, coeff=3.0, n_power_iterations=1):
+    conv = nn.Conv2d(in_planes, out_planes, kernel_size=kernel, stride=stride, padding=padding, bias=False)
+
+    shapes = (in_planes, inp_size, inp_size)
+    wrapped_conv = spectral_norm_conv(conv, coeff, shapes, n_power_iterations)
+
+    return wrapped_conv
+
 def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1) -> nn.Conv2d:
     """3x3 convolution with padding"""
     return nn.Conv2d(
@@ -58,6 +97,7 @@ class BasicBlock(nn.Module):
 
     def __init__(
         self,
+        inp_size: int,
         inplanes: int,
         planes: int,
         stride: int = 1,
@@ -75,10 +115,10 @@ class BasicBlock(nn.Module):
         if dilation > 1:
             raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
         # Both self.conv1 and self.downsample layers downsample the input when stride != 1
-        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.conv1 = wrapped_conv3x3(inp_size, inplanes, planes, stride)
         self.bn1 = norm_layer(planes)
-        self.relu = nn.ReLU(inplace=True)
-        self.conv2 = conv3x3(planes, planes)
+        self.relu = nn.LeakyReLU(inplace=True)
+        self.conv2 = wrapped_conv3x3(inp_size // stride, planes, planes)
         self.bn2 = norm_layer(planes)
         self.downsample = downsample
         self.stride = stride
@@ -113,6 +153,7 @@ class Bottleneck(nn.Module):
 
     def __init__(
         self,
+        inp_size: int,
         inplanes: int,
         planes: int,
         stride: int = 1,
@@ -127,19 +168,18 @@ class Bottleneck(nn.Module):
             norm_layer = nn.BatchNorm2d
         width = int(planes * (base_width / 64.0)) * groups
         # Both self.conv2 and self.downsample layers downsample the input when stride != 1
-        self.conv1 = conv1x1(inplanes, width)
+        self.conv1 = wrapped_conv1x1(inplanes, width)
         self.bn1 = norm_layer(width)
-        self.conv2 = conv3x3(width, width, stride, groups, dilation)
+        self.conv2 = wrapped_conv3x3(inp_size, width, width, stride, groups, dilation)
         self.bn2 = norm_layer(width)
-        self.conv3 = conv1x1(width, planes * self.expansion)
+        self.conv3 = wrapped_conv1x1(width, planes * self.expansion)
         self.bn3 = norm_layer(planes * self.expansion)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.LeakyReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
 
     def forward(self, x: Tensor) -> Tensor:
         identity = x
-
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
@@ -190,14 +230,14 @@ class ResNet(nn.Module):
             )
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
+        self.conv1 = wrapped_conv(512, 3, self.inplanes, kernel=7, stride=2, padding=3)
         self.bn1 = norm_layer(self.inplanes)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.LeakyReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 64, layers[0])
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
+        self.layer1 = self._make_layer(128, block, 64, layers[0])
+        self.layer2 = self._make_layer(128, block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
+        self.layer3 = self._make_layer(64, block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
+        self.layer4 = self._make_layer(32, block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
         self.feature = None
@@ -221,6 +261,7 @@ class ResNet(nn.Module):
 
     def _make_layer(
         self,
+        inp_size: int,
         block: Type[Union[BasicBlock, Bottleneck]],
         planes: int,
         blocks: int,
@@ -235,20 +276,21 @@ class ResNet(nn.Module):
             stride = 1
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                conv1x1(self.inplanes, planes * block.expansion, stride),
+                wrapped_conv1x1(self.inplanes, planes * block.expansion, stride),
                 norm_layer(planes * block.expansion),
             )
 
         layers = []
         layers.append(
             block(
-                self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer
+                inp_size, self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer
             )
         )
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
             layers.append(
                 block(
+                    inp_size // stride,
                     self.inplanes,
                     planes,
                     groups=self.groups,

@@ -25,12 +25,14 @@ from torch_deterministic_args import training_args
 
 # Models
 from uncertainty_baselines.models.torch_models.resnet import resnet50
+from uncertainty_baselines.models.torch_models.resnet_sn import resnet50 as resnet50_sn
 from uncertainty_baselines.models.torch_models.vgg import vgg16
 
 DEFAULT_NUM_EPOCHS = 90
 
 MODEL_DICT = {
     'resnet50': resnet50,
+    'resnet50_sn': resnet50_sn,
     'vgg16': vgg16
 }
 
@@ -107,10 +109,7 @@ def main():
 
     # Build model
     logging.info('Building Torch model')
-    model = MODEL_DICT[train_args.model](spectral_normalization=train_args.sn,
-                                         mod=train_args.mod,
-                                         num_classes=1,
-                                         coeff=train_args.coeff)
+    model = MODEL_DICT[train_args.model](num_classes=1)
     logging.info(f'Model number of weights: {torch_utils.count_parameters(model)}')
 
 
@@ -173,7 +172,7 @@ def main():
             # Add L2 regularization loss to NLL
             negative_log_likelihood = loss_fn(probs, labels)
             l2_loss = sum(p.pow(2.0).sum() for p in model.parameters())
-            loss = negative_log_likelihood + (FLAGS.l2 * l2_loss)
+            loss = negative_log_likelihood + (train_args.l2 * l2_loss)
 
             # Backward/optimizer
             loss.backward()
@@ -215,7 +214,7 @@ def main():
                                current_step) / steps_per_sec if steps_per_sec else 0
                 message = ('{:.1%} completion: epoch {:d}/{:d}. {:.1f} steps/s. '
                            'ETA: {:.0f} min. Time elapsed: {:.0f} min'.format(
-                               current_step / max_steps, epoch + 1, FLAGS.train_epochs,
+                               current_step / max_steps, epoch + 1, train_args.train_epochs,
                                steps_per_sec, eta_seconds / 60, time_elapsed / 60))
                 logging.info(message)
 
@@ -232,25 +231,11 @@ def main():
               labels._numpy()).to(device).float().unsqueeze(-1)  # pylint: disable=protected-access
 
             with torch.no_grad():
-                logits = torch.stack(
-                    [model(images) for _ in range(FLAGS.num_dropout_samples_eval)],
-                    dim=-1)
+                logits = model(images)
 
-            # Logits dimension is (batch_size, 1, num_dropout_samples).
             logits = logits.squeeze()
-
-            # It is now (batch_size, num_dropout_samples).
-            probs = sigmoid(logits)
-
-            # labels_tiled shape is (batch_size, num_dropout_samples).
-            labels_tiled = torch.tile(labels, (1, FLAGS.num_dropout_samples_eval))
-
-            log_likelihoods = -loss_fn(probs, labels_tiled)
-            negative_log_likelihood = torch.mean(
-              -torch.logsumexp(log_likelihoods, dim=-1) +
-              torch.log(torch.tensor(float(FLAGS.num_dropout_samples_eval))))
-
-            probs = torch.mean(probs, dim=-1)
+            probs = sigmoid(logits).squeeze(-1)
+            negative_log_likelihood = loss_fn(probs, labels)
 
             # Convert to NumPy for metrics updates
             negative_log_likelihood = negative_log_likelihood.detach()
