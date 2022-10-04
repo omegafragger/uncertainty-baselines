@@ -80,13 +80,16 @@ def main():
         class_weights = None
 
 
+    strategy = utils.init_distribution_strategy(force_use_cpu=True, use_gpu=False, tpu=None)
+
+
     # Load in datasets.
     per_core_batch_size = train_args.per_core_batch_size
     datasets, steps = utils.load_dataset(
         train_batch_size=per_core_batch_size,
         eval_batch_size=per_core_batch_size,
         flags=train_args,
-        strategy=None)
+        strategy=strategy)
     available_splits = list(datasets.keys())
     test_splits = [split for split in available_splits if 'test' in split]
     eval_splits = [
