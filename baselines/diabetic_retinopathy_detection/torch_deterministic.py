@@ -224,8 +224,7 @@ def main():
             images = torch.from_numpy(images._numpy()).view(per_core_batch_size, 3,  # pylint: disable=protected-access
                                                             image_h,
                                                             image_w).to(device)
-            labels = torch.from_numpy(
-              labels._numpy()).to(device).float().unsqueeze(-1)  # pylint: disable=protected-access
+            labels = torch.from_numpy(labels._numpy()).to(device).float()  # pylint: disable=protected-access
 
             with torch.no_grad():
                 logits = model(images)
