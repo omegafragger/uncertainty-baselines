@@ -300,7 +300,7 @@ def main():
         scheduler.step()
 
         # Log and write to summary the epoch metrics
-        utils.log_epoch_metrics(metrics=metrics, use_tpu=False)
+        # utils.log_epoch_metrics(metrics=metrics, use_tpu=False)
         total_results = {name: metric.result() for name, metric in metrics.items()}
         # Metrics from Robustness Metrics (like ECE) will return a dict with a
         # single key/value, instead of a scalar.
