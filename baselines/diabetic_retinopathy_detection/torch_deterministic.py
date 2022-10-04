@@ -72,11 +72,6 @@ def main():
     logging.info('Hypers:')
     logging.info(pprint.pformat(hypers_dict))
 
-    # Initialize distribution strategy on flag-specified accelerator
-    strategy = utils.init_distribution_strategy(force_use_cpu=False,
-                                                use_gpu=True,
-                                                tpu_name=None)
-
     # Reweighting loss for class imbalance
     class_reweight_mode = train_args.class_reweight_mode
     if class_reweight_mode == 'constant':
@@ -91,7 +86,7 @@ def main():
         train_batch_size=per_core_batch_size,
         eval_batch_size=per_core_batch_size,
         flags=train_args,
-        strategy=strategy)
+        strategy=None)
     available_splits = list(datasets.keys())
     test_splits = [split for split in available_splits if 'test' in split]
     eval_splits = [
@@ -142,7 +137,6 @@ def main():
             use_validation=train_args.use_validation
         )
     )
-
 
     # Init loss function
     loss_fn = torch.nn.BCELoss()
