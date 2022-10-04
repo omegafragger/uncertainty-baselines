@@ -80,7 +80,7 @@ def main():
         class_weights = None
 
 
-    strategy = utils.init_distribution_strategy(force_use_cpu=True, use_gpu=False, tpu=None)
+    strategy = utils.init_distribution_strategy(force_use_cpu=True, use_gpu=False, tpu_name=None)
 
 
     # Load in datasets.
