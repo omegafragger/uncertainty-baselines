@@ -281,19 +281,20 @@ def main():
             run_eval_epoch(ood_validation_iterator, 'ood_validation',
                          steps['ood_validation'])
 
-        id_test_iterator = iter(datasets['in_domain_test'])
-        logging.info('Starting to run in-domain test eval at epoch: %s', epoch + 1)
-        test_start_time = time.time()
-        run_eval_epoch(id_test_iterator, 'in_domain_test', steps['in_domain_test'])
-        ms_per_example = (time.time() - test_start_time) * 1e6 / per_core_batch_size
-        metrics['in_domain_test/ms_per_example'].update_state(ms_per_example)
+        if train_args.use_test:
+            id_test_iterator = iter(datasets['in_domain_test'])
+            logging.info('Starting to run in-domain test eval at epoch: %s', epoch + 1)
+            test_start_time = time.time()
+            run_eval_epoch(id_test_iterator, 'in_domain_test', steps['in_domain_test'])
+            ms_per_example = (time.time() - test_start_time) * 1e6 / per_core_batch_size
+            metrics['in_domain_test/ms_per_example'].update_state(ms_per_example)
 
-        ood_test_iterator = iter(datasets['ood_test'])
-        logging.info('Starting to run OoD test eval at epoch: %s', epoch + 1)
-        test_start_time = time.time()
-        run_eval_epoch(ood_test_iterator, 'ood_test', steps['ood_test'])
-        ms_per_example = (time.time() - test_start_time) * 1e6 / per_core_batch_size
-        metrics['ood_test/ms_per_example'].update_state(ms_per_example)
+            ood_test_iterator = iter(datasets['ood_test'])
+            logging.info('Starting to run OoD test eval at epoch: %s', epoch + 1)
+            test_start_time = time.time()
+            run_eval_epoch(ood_test_iterator, 'ood_test', steps['ood_test'])
+            ms_per_example = (time.time() - test_start_time) * 1e6 / per_core_batch_size
+            metrics['ood_test/ms_per_example'].update_state(ms_per_example)
 
         # Step scheduler
         scheduler.step()

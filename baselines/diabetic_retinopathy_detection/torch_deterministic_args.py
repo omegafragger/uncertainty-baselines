@@ -59,7 +59,7 @@ def training_args():
     parser.add_argument("--use-validation", action="store_true", dest="use_validation", help="Whether to use validation set during training")
     parser.set_defaults(use_validation=True)
     parser.add_argument("--use-test", action="store_true", dest="use_test", help="Whether to use test set during training")
-    parser.set_defaults(use_test=True)
+    parser.set_defaults(use_test=False)
 
     parser.add_argument(
         "--preproc-builder-config", type=str, default=preproc_builder_config, dest="preproc_builder_config", help="Builder config to store data in",
