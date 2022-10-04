@@ -11,5 +11,5 @@ srun python torch_deterministic.py \
 --data-dir /scratch-ssd/jisoti/ub_retinopathy \
 --distribution-shift severity \
 --seed 1 \
---per-core-batch-size 32 \
+--per-core-batch-size 20 \
 --model resnet50
