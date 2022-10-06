@@ -8,7 +8,7 @@ source activate ub2
 
 srun python torch_deterministic.py \
 --output-dir /scratch-ssd/jisoti/ub_retinopathy_outputs/country_shift/vgg \
---data-dir /scratch-ssd/jisoti/ub_retinopathy \
+--data-dir /users/jisoti/ub_retinopathy \
 --distribution-shift aptos \
 --seed 14 \
 --per-core-batch-size 32 \
