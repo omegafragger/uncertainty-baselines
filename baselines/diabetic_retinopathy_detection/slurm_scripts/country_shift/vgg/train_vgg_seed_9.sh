@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --cpus-per-task=10
-#SBATCH --gres=gpu:titanrtx:1
+#SBATCH --gres=gpu:2g.20gb:1
 
 #SBATCH --job-name="train_retino_country_shift/vgg"
 
